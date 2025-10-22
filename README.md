@@ -1,4 +1,4 @@
-# FFmpeg Converter Batch
+# Convertio
 
 Convertitore audio e video professionale con interfaccia batch per Windows. Script BAT che automatizza la conversione multipla di file media utilizzando FFmpeg.
 
@@ -155,17 +155,6 @@ Cartella output piena:
 - Interfaccia grafica (GUI)
 - Conversione parallela multipla
 - Preset di qualità personalizzati
-- Integrazione con shell context menu
-- Supporto watermark/overlay
-- Conversione con sottotitoli
-
-## Licenza
-
-Questo script è gratuito e open source. FFmpeg è distribuito sotto licenza LGPL 2.1.
-
-## Autore
-
-Script creato per automatizzare operazioni batch con FFmpeg su Windows.
 
 ## Supporto
 
