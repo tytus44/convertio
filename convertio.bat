@@ -3,28 +3,53 @@ setlocal enabledelayedexpansion
 chcp 65001 >nul
 cls
 
-REM Verifica FFmpeg
-ffmpeg -version >nul 2>&1
+REM === NUOVO: Blocco di Verifica Dipendenze con Winget ===
+echo Verifico la presenza di Winget (Gestore Pacchetti Windows)...
+winget --version >nul 2>&1
 if errorlevel 1 (
     echo.
-    echo ERRORE: FFmpeg non trovato!
-    echo Installa FFmpeg da: https://ffmpeg.org/download.html
-    echo E aggiungi al PATH di sistema.
+    echo ERRORE: 'winget' non trovato!
+    echo Questo script richiede Winget per installare/aggiornare FFmpeg e yt-dlp.
+    echo.
+    echo Per favore, installa "App Installer" dal Microsoft Store per continuare.
     pause
     exit /b 1
 )
+echo Winget trovato.
+echo.
 
-REM === Verifica yt-dlp ===
-yt-dlp --version >nul 2>&1
+echo === Installazione/Aggiornamento FFmpeg (Versione COMPLETA) ===
+echo Questo passaggio potrebbe richiedere l'approvazione dell'amministratore (UAC).
+echo (Necessario per le opzioni 1-7)
+winget install --id FFmpeg.FFmpeg -e --accept-source-agreements --accept-package-agreements
 if errorlevel 1 (
     echo.
-    echo ERRORE: yt-dlp non trovato!
-    echo Installa yt-dlp da: https://github.com/yt-dlp/yt-dlp
-    echo Assicurati che il file .exe sia nel PATH di sistema.
+    echo ERRORE: Impossibile installare/aggiornare FFmpeg tramite winget.
+    echo Prova a eseguire questo script come Amministratore.
     pause
     exit /b 1
 )
-REM ===============================
+echo FFmpeg installato/aggiornato.
+echo.
+
+echo === Installazione/Aggiornamento yt-dlp (Ignorando dipendenze) ===
+echo (Saltiamo l'installazione di 'yt-dlp.FFmpeg' minima perche' abbiamo gia' la versione completa)
+winget install --id yt-dlp.yt-dlp -e --accept-source-agreements --accept-package-agreements --ignore-dependencies
+if errorlevel 1 (
+    echo.
+    echo ERRORE: Impossibile installare/aggiornare yt-dlp tramite winget.
+    pause
+    exit /b 1
+)
+echo yt-dlp installato/aggiornato.
+echo.
+REM === FINE Blocco Dipendenze ===
+
+cls
+echo.
+echo Controlli completati. Lo script si avviera' tra poco...
+timeout /t 3 /nobreak
+
 
 set "log_file=%USERPROFILE%\Desktop\ffmpeg_log_%date:~6,4%%date:~3,2%%date:~0,2%_%time:~0,2%%time:~3,2%.log"
 set "default_output=%USERPROFILE%\Desktop\FFmpeg_Output"
@@ -230,7 +255,8 @@ for %%F in ("!cartella!\*.mp4" "!cartella!\*.avi" "!cartella!\*.mkv" "!cartella!
     
     if errorlevel 1 (
         set /a errors+=1
-        echo ERRORE: !filename! >> !log_file!
+       
+ echo ERRORE: !filename! >> !log_file!
         echo   [ERRORE]
     ) else (
         set /a count+=1
@@ -300,14 +326,16 @@ for %%F in ("!cartella!\*.mp3" "!cartella!\*.wav" "!cartella!\*.aac" "!cartella!
         echo [!perc!%%] Elaborazione: !filename!!ext!
         
         if "!formato!"=="mp3" (
-            ffmpeg -i "%%F" -q:a 0 -map a "!out_folder!\!name!_conv.mp3" -y 2>>!log_file!
+          
+  ffmpeg -i "%%F" -q:a 0 -map a "!out_folder!\!name!_conv.mp3" -y 2>>!log_file!
         ) else if "!formato!"=="wav" (
             ffmpeg -i "%%F" -acodec pcm_s16le -ar 44100 "!out_folder!\!name!_conv.wav" -y 2>>!log_file!
         ) else if "!formato!"=="aac" (
             ffmpeg -i "%%F" -c:a aac -b:a 192k "!out_folder!\!name!_conv.aac" -y 2>>!log_file!
         ) else if "!formato!"=="ogg" (
-            ffmpeg -i "%%F" -c:a libvorbis -q:a 4 "!out_folder!\!name!_conv.ogg" -y 2>>!log_file!
-        ) else if "!formato!"=="flac" (
+           
+ ffmpeg -i "%%F" -c:a libvorbis -q:a 4 "!out_folder!\!name!_conv.ogg" -y 2>>!log_file!
+) else if "!formato!"=="flac" (
             ffmpeg -i "%%F" -c:a flac "!out_folder!\!name!_conv.flac" -y 2>>!log_file!
         )
         
@@ -315,7 +343,8 @@ for %%F in ("!cartella!\*.mp3" "!cartella!\*.wav" "!cartella!\*.aac" "!cartella!
             set /a errors+=1
             echo ERRORE: !filename!!ext! >> !log_file!
             echo   [ERRORE]
-        ) else (
+     
+   ) else (
             set /a count+=1
             echo OK: !name!_conv.!formato! >> !log_file!
             echo   [OK]
@@ -415,11 +444,6 @@ cls
 echo.
 echo --- Download ^& Converti Video YouTube ---
 echo.
-echo.
-echo === AGGIORNAMENTO yt-dlp ===
-yt-dlp -U
-echo ==============================
-echo.
 echo Formati: MP4, AVI, MKV, WebM, MOV
 echo Qualita: bassa=28, media=23, alta=18
 echo.
@@ -444,7 +468,6 @@ if errorlevel 1 (
     echo ERRORE^! Controlla il log.
 ) else (
     echo OK: Video scaricato in !video_output_folder! >> !log_file!
-    REM === CORREZIONE QUI ===
     echo Completato^! Salvato in %video_output_folder%
 )
 pause
@@ -454,11 +477,6 @@ goto menu
 cls
 echo.
 echo --- Download ^& Estrai Audio YouTube ---
-echo.
-echo.
-echo === AGGIORNAMENTO yt-dlp ===
-yt-dlp -U
-echo ==============================
 echo.
 echo Formati: MP3, WAV, AAC, OGG, FLAC
 echo.
@@ -489,7 +507,6 @@ if errorlevel 1 (
     echo ERRORE^! Controlla il log.
 ) else (
     echo OK: Audio estratto in !audio_output_folder! >> !log_file!
-    REM === CORREZIONE QUI ===
     echo Completato^! Salvato in %audio_output_folder%
 )
 pause
