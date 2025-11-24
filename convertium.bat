@@ -445,27 +445,26 @@ echo.
 echo --- Download ^& Converti Video YouTube ---
 echo.
 echo Formati: MP4, AVI, MKV, WebM, MOV
-echo Qualita: bassa=28, media=23, alta=18
+echo Nota: La qualita' sara' automaticamente la migliore disponibile.
 echo.
 set /p url="Inserisci URL YouTube: "
 set /p formato="Formato output (mp4/avi/mkv/webm/mov): "
-set /p qualita="Qualita video (18-28, default=23): "
-if "!qualita!"=="" set qualita=23
 set /p output="Nome output (Default: Titolo Video. Salva in !video_output_folder!): "
 
 echo.
 echo Sto scaricando e convertendo... (potrebbe richiedere tempo)
 echo.
 
+REM Comando semplificato per evitare conflitti di post-processing
 if "!output!"=="" (
-    yt-dlp -f "bv+ba/b" -o "!video_output_folder!\%%(title)s.%%(ext)s" --recode-video !formato! --postprocessor-args "ffmpeg:-c:v libx264 -crf !qualita! -c:a aac -b:a 128k" "!url!" 2>>!log_file!
+    yt-dlp -f "bv+ba/b" -o "!video_output_folder!\%%(title)s.%%(ext)s" --recode-video !formato! "!url!" 2>>!log_file!
 ) else (
-    yt-dlp -f "bv+ba/b" -o "!video_output_folder!\!output!.%%(ext)s" --recode-video !formato! --postprocessor-args "ffmpeg:-c:v libx264 -crf !qualita! -c:a aac -b:a 128k" "!url!" 2>>!log_file!
+    yt-dlp -f "bv+ba/b" -o "!video_output_folder!\!output!.%%(ext)s" --recode-video !formato! "!url!" 2>>!log_file!
 )
 
 if errorlevel 1 (
     echo ERRORE durante download/conversione! >> !log_file!
-    echo ERRORE^! Controlla il log.
+    echo ERRORE^! Controlla il file di log (Opzione 8).
 ) else (
     echo OK: Video scaricato in !video_output_folder! >> !log_file!
     echo Completato^! Salvato in %video_output_folder%
